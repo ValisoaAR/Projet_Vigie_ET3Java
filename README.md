@@ -1,18 +1,45 @@
-## Getting Started
+# Vigie des Médias – Projet Java
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+Ce projet a été développé dans le cadre d’un exercice académique visant à modéliser et simuler un système de surveillance des interactions médiatiques. Il repose sur une architecture orientée objet en Java, avec une approche modulaire et événementielle.
 
-## Folder Structure
+## Objectif
 
-The workspace contains two folders by default, where:
+L'application permet de simuler des événements dans le domaine des médias (tels que des publications ou des rachats), et de déclencher des alertes via des modules spécialisés qui analysent ces événements en temps réel. Un module central, la Vigie, centralise et affiche les alertes détectées.
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+## Fonctionnalités
 
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
+- Création d’entités : personnes physiques, personnes morales (organisations), et médias
+- Système d’événements : publication, rachat de parts
+- Modules spécialisés configurables :
+  - Suivi des publications mentionnant des personnes surveillées
+  - Suivi des rachats concernant des médias surveillés
+- Transmission d’alertes à un module central (Vigie)
+- Interface utilisateur en ligne de commande
 
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
+## Structure du projet
 
-## Dependency Management
+```
+src/
+├── model/               → Modèles de données (Entite, Media, Evenement, etc.)
+├── core/                → Composants principaux : vigie, dispatcher, services
+├── modules/             → Modules spécialisés observateurs
+├── ui/                  → Interface utilisateur en console
+└── Main.java            → Point d’entrée de l’application
+```
 
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+## Technologies utilisées
+
+- Java SE
+- Architecture orientée objet
+- Git et GitHub
+- Visual Studio Code
+
+## Auteur
+
+- [Ton prénom et nom ici]
+
+Projet réalisé à titre académique. Toute réutilisation doit être accompagnée d’une mention de l’auteur original.
+
+## Licence
+
+Ce dépôt est destiné à un usage pédagogique uniquement. Aucune licence commerciale ou open source formelle n’est attachée.
