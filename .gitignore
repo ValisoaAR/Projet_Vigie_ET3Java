@@ -1,0 +1,11 @@
+# Dossiers à ignorer
+bin/
+lib/
+.vscode/
+
+# Fichiers compilés
+*.class
+
+# Fichiers système
+.DS_Store
+Thumbs.db
