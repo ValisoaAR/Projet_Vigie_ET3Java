@@ -36,7 +36,7 @@ src/
 
 ## Auteur
 
-- [Ton prénom et nom ici]
+- Valisoa RANDRIANOELINA
 
 Projet réalisé à titre académique. Toute réutilisation doit être accompagnée d’une mention de l’auteur original.
 
