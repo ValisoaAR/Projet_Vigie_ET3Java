@@ -58,6 +58,16 @@ public class Evenement {
         return contenu;
     }
 
+    /**
+     * Définit la cible de l’événement.
+     *
+     * @param cible entité concernée
+     */
+    public void setCible(Entite cible) {
+        this.cible = cible;
+    }
+
+
     @Override
     public String toString() {
         return "Evenement{type='" + type + "', date=" + date + ", cible=" + cible + ", contenu='" + contenu + "'}";

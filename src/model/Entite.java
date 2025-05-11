@@ -7,27 +7,15 @@ package model;
  * @see PersonneMorale
  */
 public abstract class Entite {
-    protected int id;
     protected String nom;
 
     /**
      * Constructeur de l'entité.
      *
-     * @param id  Identifiant unique de l'entité
      * @param nom Nom de l'entité
      */
-    public Entite(int id, String nom) {
-        this.id = id;
+    public Entite(String nom) {
         this.nom = nom;
-    }
-
-    /**
-     * Retourne l'identifiant de l'entité.
-     *
-     * @return identifiant de l'entité
-     */
-    public int getId() {
-        return id;
     }
 
     /**
@@ -41,6 +29,6 @@ public abstract class Entite {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{id=" + id + ", nom='" + nom + "'}";
+        return getClass().getSimpleName() + "{nom='" + nom + "'}";
     }
 }

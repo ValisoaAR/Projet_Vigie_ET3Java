@@ -14,11 +14,10 @@ public class PersonneMorale extends Entite {
     /**
      * Constructeur de la personne morale.
      *
-     * @param id  Identifiant unique
      * @param nom Nom de la personne morale
      */
-    public PersonneMorale(int id, String nom) {
-        super(id, nom);
+    public PersonneMorale(String nom) {
+        super(nom);
         this.membres = new ArrayList<>();
     }
 

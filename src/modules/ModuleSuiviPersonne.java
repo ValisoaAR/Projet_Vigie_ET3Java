@@ -5,25 +5,23 @@ import core.Vigie;
 import model.Evenement;
 import model.PersonnePhysique;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Module spécialisé chargé de surveiller les publications concernant
- * une ou plusieurs personnes physiques. Il déclenche une alerte si
- * une publication mentionne une personne surveillée ou la cible directement.
- *
- * @see PersonnePhysique
- * @see Evenement
+ * Module chargé de surveiller des personnes physiques dans les publications.
+ * Déclenche une alerte si une personne surveillée est mentionnée.
  */
 public class ModuleSuiviPersonne implements ModuleSpecialise {
-    private List<PersonnePhysique> personnesSurveillees;
-    private Vigie vigie; // Référence vers la vigie pour lui envoyer les alertes
+    private final List<PersonnePhysique> personnesSurveillees;
+    private final Vigie vigie;
+    private final List<Evenement> historique = new ArrayList<>();
 
     /**
-     * Construit un module de suivi de publications pour des personnes physiques.
+     * Construit un module pour surveiller une liste de personnes.
      *
-     * @param personnesSurveillees liste des personnes à surveiller
-     * @param vigie                instance de la vigie à alerter
+     * @param personnesSurveillees liste des personnes physiques à surveiller
+     * @param vigie                instance de la Vigie à alerter
      */
     public ModuleSuiviPersonne(List<PersonnePhysique> personnesSurveillees, Vigie vigie) {
         this.personnesSurveillees = personnesSurveillees;
@@ -31,16 +29,16 @@ public class ModuleSuiviPersonne implements ModuleSpecialise {
     }
 
     /**
-     * Traite un événement. Si c'est une publication qui concerne une personne surveillée,
-     * une alerte est envoyée à la vigie.
+     * Traite un événement. Si une personne surveillée est mentionnée,
+     * une alerte est envoyée à la Vigie.
      *
-     * @param evenement l'événement à analyser
+     * @param evenement l’événement à analyser
      */
     @Override
     public void traiter(Evenement evenement) {
-        if (!evenement.getType().equalsIgnoreCase("publication")) {
-            return;
-        }
+        historique.add(evenement);
+
+        if (!evenement.getType().equalsIgnoreCase("publication")) return;
 
         for (PersonnePhysique p : personnesSurveillees) {
             boolean mentionDansContenu = evenement.getContenu().toLowerCase().contains(p.getNom().toLowerCase());
@@ -48,11 +46,21 @@ public class ModuleSuiviPersonne implements ModuleSpecialise {
                     && ((PersonnePhysique) evenement.getCible()).equals(p);
 
             if (mentionDansContenu || cibleEstPersonne) {
-                String alerte = "ALERTE : " + p.getNom() + " a été mentionné dans une publication le "
+                String alerte = "Publication mentionnant " + p.getNom() + " le "
                         + evenement.getDate() + " : " + evenement.getContenu();
                 vigie.recevoirAlerte(alerte);
                 break;
             }
+        }
+    }
+
+    /**
+     * Affiche l’historique des événements reçus par ce module.
+     */
+    public void afficherHistorique() {
+        System.out.println("Historique du module de suivi de personne :");
+        for (Evenement e : historique) {
+            System.out.println("- [" + e.getDate() + "] " + e.getContenu());
         }
     }
 }

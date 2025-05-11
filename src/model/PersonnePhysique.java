@@ -10,10 +10,9 @@ public class PersonnePhysique extends Entite {
     /**
      * Constructeur de la personne physique.
      *
-     * @param id  Identifiant unique
      * @param nom Nom complet de la personne
      */
-    public PersonnePhysique(int id, String nom) {
-        super(id, nom);
+    public PersonnePhysique(String nom) {
+        super(nom);
     }
 }

@@ -26,21 +26,27 @@ public class Participation {
     }
 
     /**
-     * @return l'entité propriétaire des parts
+     * Retourne l'entité propriétaire des parts.
+     *
+     * @return propriétaire
      */
     public Entite getProprietaire() {
         return proprietaire;
     }
 
     /**
-     * @return l'entité ou le média ciblé par cette participation
+     * Retourne la cible de la participation (entité ou média).
+     *
+     * @return cible
      */
     public Entite getCible() {
         return cible;
     }
 
     /**
-     * @return le pourcentage de propriété détenu
+     * Retourne le pourcentage détenu.
+     *
+     * @return pourcentage de propriété (entre 0 et 100)
      */
     public double getPourcentage() {
         return pourcentage;
@@ -49,12 +55,17 @@ public class Participation {
     /**
      * Définit un nouveau pourcentage de propriété.
      *
-     * @param pourcentage nouveau pourcentage (0 à 100)
+     * @param pourcentage nouveau pourcentage (entre 0 et 100)
      */
     public void setPourcentage(double pourcentage) {
         this.pourcentage = pourcentage;
     }
 
+    /**
+     * Affiche une description lisible de la participation.
+     *
+     * @return chaîne de caractères représentant la participation
+     */
     @Override
     public String toString() {
         return proprietaire.getNom() + " détient " + pourcentage + "% de " + cible.getNom();

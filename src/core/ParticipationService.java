@@ -1,47 +1,37 @@
 package core;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import model.Entite;
 import model.Participation;
 
+import java.util.*;
+
 /**
- * Gère l'ensemble des participations entre entités et médias.
- * Permet d'ajouter, consulter et transférer des parts de propriété.
- *
- * @see Participation
+ * Gère les participations entre entités (médias, organisations, personnes).
+ * Permet l’ajout, le transfert, et la consultation des parts détenues.
  */
 public class ParticipationService {
-    private List<Participation> participations;
+    private final List<Participation> participations = new ArrayList<>();
+    private Map<String, Entite> entitesParNom = new HashMap<>();
 
     /**
-     * Initialise un gestionnaire vide de participations.
-     */
-    public ParticipationService() {
-        this.participations = new ArrayList<>();
-    }
-
-    /**
-     * Ajoute une nouvelle participation.
+     * Ajoute une nouvelle participation au système.
      *
-     * @param proprietaire Entité qui détient les parts
-     * @param cible        Entité ou média possédé
-     * @param pourcentage  Pourcentage détenu (entre 0 et 100)
+     * @param proprietaire entité détentrice
+     * @param cible        entité ou média détenu
+     * @param pourcentage  pourcentage de parts (0–100)
      */
     public void ajouterParticipation(Entite proprietaire, Entite cible, double pourcentage) {
         participations.add(new Participation(proprietaire, cible, pourcentage));
     }
 
     /**
-     * Transfère une partie des parts d'une entité vers une autre.
+     * Transfère un pourcentage de parts d’un vendeur à un acheteur.
      *
-     * @param vendeur     Entité cédante
-     * @param acheteur    Entité acheteuse
-     * @param cible       Cible de la participation
-     * @param pourcentage Pourcentage à transférer
-     * @return true si le transfert est cohérent et effectué, false sinon
+     * @param vendeur     entité cédante
+     * @param acheteur    entité acheteuse
+     * @param cible       cible de la participation
+     * @param pourcentage pourcentage à transférer
+     * @return true si le transfert est valide, false sinon
      */
     public boolean transfererParts(Entite vendeur, Entite acheteur, Entite cible, double pourcentage) {
         for (Participation p : participations) {
@@ -49,16 +39,17 @@ public class ParticipationService {
                 if (p.getPourcentage() >= pourcentage) {
                     p.setPourcentage(p.getPourcentage() - pourcentage);
 
-                    boolean acheteurExiste = false;
+                    // Chercher si l’acheteur possède déjà une part
+                    boolean trouvé = false;
                     for (Participation pa : participations) {
                         if (pa.getProprietaire().equals(acheteur) && pa.getCible().equals(cible)) {
                             pa.setPourcentage(pa.getPourcentage() + pourcentage);
-                            acheteurExiste = true;
+                            trouvé = true;
                             break;
                         }
                     }
 
-                    if (!acheteurExiste) {
+                    if (!trouvé) {
                         participations.add(new Participation(acheteur, cible, pourcentage));
                     }
 
@@ -66,42 +57,44 @@ public class ParticipationService {
                 }
             }
         }
-        return false; // Rachat incohérent
+        return false;
     }
 
     /**
-     * @return toutes les participations enregistrées
+     * Enregistre les entités disponibles (clé = nom).
+     *
+     * @param mapEntites map des entités par nom
+     */
+    public void setEntites(Map<String, Entite> mapEntites) {
+        this.entitesParNom = mapEntites;
+    }
+
+    /**
+     * Retourne une entité par son nom normalisé (minuscules + sans espaces superflus).
+     *
+     * @param nom nom de l’entité recherchée
+     * @return entité correspondante ou null
+     */
+    public Entite getEntiteParNom(String nom) {
+        return entitesParNom.get(nom.toLowerCase().trim());
+    }
+
+    /**
+     * @return la liste de toutes les participations
      */
     public List<Participation> getParticipations() {
         return participations;
     }
 
-    /**
-     * Retourne les participations détenues par une entité donnée.
-     *
-     * @param proprietaire Entité concernée
-     * @return liste des participations
+        /**
+     * @return la map des entités connues (par nom en minuscules)
      */
-    public List<Participation> getParticipationsParProprietaire(Entite proprietaire) {
-        return participations.stream()
-                .filter(p -> p.getProprietaire().equals(proprietaire))
-                .collect(Collectors.toList());
+    public Map<String, Entite> getEntites() {
+        return entitesParNom;
     }
 
     /**
-     * Retourne toutes les participations visant une cible donnée.
-     *
-     * @param cible entité ou média possédé
-     * @return liste des participations sur cette cible
-     */
-    public List<Participation> getParticipationsSurCible(Entite cible) {
-        return participations.stream()
-                .filter(p -> p.getCible().equals(cible))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Affiche toutes les participations dans la console.
+     * Affiche les participations dans la console.
      */
     public void afficherParticipations() {
         for (Participation p : participations) {
