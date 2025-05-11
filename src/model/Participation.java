@@ -62,6 +62,18 @@ public class Participation {
     }
 
     /**
+     * Retourne le média associé à cette participation si la cible est un média.
+     *
+     * @return Le média concerné, ou null si la cible n'est pas un média
+     */
+    public Media getMedia() {
+        if (cible instanceof Media) {
+            return (Media) cible;
+        }
+        return null;
+    }
+
+    /**
      * Affiche une description lisible de la participation.
      *
      * @return chaîne de caractères représentant la participation

@@ -1,5 +1,8 @@
 package model;
 
+import java.util.List;
+import core.ParticipationService;
+
 /**
  * Représente un média (presse, TV, radio, etc.) pouvant être détenu par une ou plusieurs entités.
  */
@@ -22,6 +25,16 @@ public class Media extends Entite {
      */
     public String getType() {
         return type;
+    }
+
+    /**
+     * Retourne les participations associées à ce média.
+     *
+     * @param participationService Le service de participation.
+     * @return Liste des participations pour ce média.
+     */
+    public List<Participation> getParticipations(ParticipationService participationService) {
+        return participationService.getProprietaires(this);
     }
 
     /**

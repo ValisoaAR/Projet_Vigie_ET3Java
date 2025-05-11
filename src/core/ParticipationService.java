@@ -1,7 +1,10 @@
 package core;
 
 import model.Entite;
+import model.Media;
 import model.Participation;
+import model.PersonneMorale;
+import model.PersonnePhysique;
 
 import java.util.*;
 
@@ -117,6 +120,38 @@ public class ParticipationService {
     }
 
     /**
+     * Retourne la liste des propriétaires d'une entité donnée.
+     *
+     * @param cible L'entité cible.
+     * @return Liste des participations où l'entité est la cible.
+     */
+    public List<Participation> getProprietaires(Entite cible) {
+        List<Participation> result = new ArrayList<>();
+        for (Participation p : participations) {
+            if (p.getCible().equals(cible)) {
+                result.add(p);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Retourne la liste des propriétés d'une entité donnée.
+     *
+     * @param proprietaire L'entité propriétaire.
+     * @return Liste des participations où l'entité est propriétaire.
+     */
+    public List<Participation> getProprietes(Entite proprietaire) {
+        List<Participation> result = new ArrayList<>();
+        for (Participation p : participations) {
+            if (p.getProprietaire().equals(proprietaire)) {
+                result.add(p);
+            }
+        }
+        return result;
+    }
+
+    /**
      * Enregistre les entités disponibles (clé = nom).
      *
      * @param mapEntites map des entités par nom
@@ -154,27 +189,43 @@ public class ParticipationService {
     }
 
     /**
-     * Retourne la liste des participations d'une entité donnée.
-     *
-     * @param proprietaire l'entité propriétaire
-     * @return liste des participations de l'entité
-     */
-    public List<Participation> getParticipationsParEntite(Entite proprietaire) {
-        List<Participation> result = new ArrayList<>();
-        for (Participation p : participations) {
-            if (p.getProprietaire().equals(proprietaire)) {
-                result.add(p);
-            }
-        }
-        return result;
-    }
-
-    /**
      * Affiche les participations dans la console.
      */
     public void afficherParticipations() {
         for (Participation p : participations) {
             System.out.println(p);
         }
+    }
+
+    /**
+     * Retourne une map des entités avec le nombre de médias qu'elles possèdent.
+     *
+     * @return Map où la clé est une entité et la valeur est le nombre de médias possédés.
+     */
+    public Map<Entite, Integer> getNombreMediasPossedes() {
+        Map<Entite, Integer> result = new HashMap<>();
+        for (Participation participation : participations) {
+            if (participation.getCible() instanceof Media) {
+                result.put(participation.getProprietaire(),
+                        result.getOrDefault(participation.getProprietaire(), 0) + 1);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Retourne une map des entités avec le nombre d'organisations qu'elles possèdent.
+     *
+     * @return Map où la clé est une entité et la valeur est le nombre d'organisations possédées.
+     */
+    public Map<Entite, Integer> getNombreOrganisationsPossedees() {
+        Map<Entite, Integer> result = new HashMap<>();
+        for (Participation participation : participations) {
+            if (participation.getCible() instanceof PersonneMorale) {
+                result.put(participation.getProprietaire(),
+                        result.getOrDefault(participation.getProprietaire(), 0) + 1);
+            }
+        }
+        return result;
     }
 }

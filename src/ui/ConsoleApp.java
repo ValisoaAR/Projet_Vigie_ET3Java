@@ -4,7 +4,6 @@ import core.*;
 import model.*;
 import modules.ModuleSuiviMedia;
 import modules.ModuleSuiviPersonne;
-import core.SystemeEvenementiel;
 
 import java.text.Normalizer;
 import java.time.LocalDate;
@@ -40,21 +39,13 @@ public class ConsoleApp {
         // Menu interactif
         boolean continuer = true;
         while (continuer) {
-            afficherMenu();
+            afficherMenuPrincipal();
             String choix = scanner.nextLine();
             switch (choix) {
-                case "1" -> afficherEntites();
-                case "2" -> afficherParticipations();
-                case "3" -> simulerPublication();
-                case "4" -> simulerRachat();
-                case "5" -> afficherAlertes();
-                case "6" -> afficherClassementPossessionMedias();
-                case "7" -> afficherClassementPossessionOrganisations();
-                case "8" -> afficherHistoriquesModules();
-                case "9" -> saisirMediaEtAfficherProprietaires();
-                case "10" -> saisirOrganisationEtAfficherDetails();
-                case "11" -> saisirPersonneEtAfficherPossessions();
-                case "12" -> verifierAbonnements();
+                case "1" -> menuAffichages();
+                case "2" -> menuSimulations();
+                case "3" -> menuHistoriques();
+                case "4" -> sAbonner();
                 case "0" -> continuer = false;
                 default -> System.out.println("Choix invalide.");
             }
@@ -64,47 +55,202 @@ public class ConsoleApp {
     }
 
     /**
-     * Initialise les modules spécialisés pour les entités surveillées.
+     * Affiche le menu principal.
      */
-    private void initialiserModules() {
-        Entite personne = participationService.getEntiteParNom("vincent bolloré");
-        if (personne instanceof PersonnePhysique) {
-            modulePersonne = new ModuleSuiviPersonne(List.of((PersonnePhysique) personne), vigie);
-            systeme.abonner("publication", modulePersonne);
-        } else {
-            System.err.println("Erreur : L'entité 'vincent bolloré' n'a pas été trouvée ou n'est pas une PersonnePhysique.");
-        }
+    private void afficherMenuPrincipal() {
+        System.out.println("""
+                \n=== MENU PRINCIPAL ===
+                1. Affichages
+                2. Simulations d'événements
+                3. Historiques
+                4. S'abonner à des médias ou personnes
+                0. Quitter
+                """);
+        System.out.print("Votre choix : ");
+    }
 
-        Entite media = participationService.getEntiteParNom("le monde");
-        if (media instanceof Media) {
-            moduleMedia = new ModuleSuiviMedia(List.of((Media) media), vigie);
-            systeme.abonner("rachat", moduleMedia);
-        } else {
-            System.err.println("Erreur : L'entité 'le monde' n'a pas été trouvée ou n'est pas un Media.");
+    /**
+     * Menu pour les affichages.
+     */
+    private void menuAffichages() {
+        boolean continuer = true;
+        while (continuer) {
+            System.out.println("""
+                    \n=== AFFICHAGES ===
+                    1. Afficher toutes les entités
+                    2. Afficher les participations
+                    3. Afficher les entités par nombre de médias possédés
+                    4. Afficher les entités par nombre d'organisations possédées
+                    5. Saisir une entité pour afficher ses propriétaires et propriétés
+                    0. Retour au menu principal
+                    """);
+            System.out.print("Votre choix : ");
+            String choix = scanner.nextLine();
+            switch (choix) {
+                case "1" -> afficherEntites();
+                case "2" -> afficherParticipations();
+                case "3" -> afficherClassementMedias();
+                case "4" -> afficherClassementOrganisations();
+                case "5" -> rechercherEntiteParNomExact();
+                case "0" -> continuer = false;
+                default -> System.out.println("Choix invalide.");
+            }
         }
     }
 
     /**
-     * Affiche le menu principal.
+     * Menu pour les simulations d'événements.
      */
-    private void afficherMenu() {
-        System.out.println("""
-                \n=== MENU ===
-                1. Afficher toutes les entités
-                2. Afficher les participations
-                3. Simuler une publication
-                4. Simuler un rachat de parts
-                5. Afficher les alertes reçues
-                6. Afficher les entités par nombre de médias possédés
-                7. Afficher les entités par nombre d'organisations possédées
-                8. Afficher l’historique des modules spécialisés
-                9. Saisir un média et afficher ses propriétaires
-                10. Saisir une organisation et afficher ses relations
-                11. Saisir une personne et afficher ses possessions
-                12. Vérifier les abonnements aux événements
-                0. Quitter
-                """);
+    private void menuSimulations() {
+        boolean continuer = true;
+        while (continuer) {
+            System.out.println("""
+                    \n=== SIMULATIONS D'ÉVÉNEMENTS ===
+                    1. Simuler une publication
+                    2. Simuler un rachat
+                    0. Retour au menu principal
+                    """);
+            System.out.print("Votre choix : ");
+            String choix = scanner.nextLine();
+            switch (choix) {
+                case "1" -> simulerPublication();
+                case "2" -> simulerRachat();
+                case "0" -> continuer = false;
+                default -> System.out.println("Choix invalide.");
+            }
+        }
+    }
+
+    /**
+     * Menu pour les historiques.
+     */
+    private void menuHistoriques() {
+        boolean continuer = true;
+        while (continuer) {
+            System.out.println("""
+                    \n=== HISTORIQUES ===
+                    1. Afficher l'historique des publications
+                    2. Afficher l'historique des alertes
+                    0. Retour au menu principal
+                    """);
+            System.out.print("Votre choix : ");
+            String choix = scanner.nextLine();
+            switch (choix) {
+                case "1" -> afficherHistoriquePublications();
+                case "2" -> afficherAlertes();
+                case "0" -> continuer = false;
+                default -> System.out.println("Choix invalide.");
+            }
+        }
+    }
+
+    /**
+     * Permet à l'utilisateur de s'abonner à des médias ou personnes.
+     */
+    private void sAbonner() {
+        System.out.println("\n=== S'ABONNER À DES MÉDIAS OU PERSONNES ===");
+        System.out.println("1. S'abonner à des médias");
+        System.out.println("2. S'abonner à des personnes");
         System.out.print("Votre choix : ");
+        String choix = scanner.nextLine();
+
+        switch (choix) {
+            case "1" -> sAbonnerMedias();
+            case "2" -> sAbonnerPersonnes();
+            default -> System.out.println("Choix invalide.");
+        }
+    }
+
+    /**
+     * Permet de s'abonner à des médias.
+     */
+    private void sAbonnerMedias() {
+        System.out.println("\n=== LISTE DES MÉDIAS DISPONIBLES ===");
+        List<Media> medias = participationService.getEntites().values().stream()
+                .filter(entite -> entite instanceof Media)
+                .map(entite -> (Media) entite)
+                .toList();
+
+        if (medias.isEmpty()) {
+            System.out.println("Aucun média disponible.");
+            return;
+        }
+
+        for (int i = 0; i < medias.size(); i++) {
+            System.out.println((i + 1) + ". " + medias.get(i).getNom());
+        }
+
+        System.out.print("Entrez les numéros des médias à surveiller (séparés par des virgules) : ");
+        String saisie = scanner.nextLine();
+        String[] indices = saisie.split(",");
+
+        List<Media> mediasSelectionnes = new ArrayList<>();
+        for (String index : indices) {
+            try {
+                int i = Integer.parseInt(index.trim()) - 1;
+                if (i >= 0 && i < medias.size()) {
+                    mediasSelectionnes.add(medias.get(i));
+                } else {
+                    System.out.println("Numéro invalide : " + (i + 1));
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Entrée invalide : " + index);
+            }
+        }
+
+        if (!mediasSelectionnes.isEmpty()) {
+            moduleMedia = new ModuleSuiviMedia(mediasSelectionnes, vigie);
+            systeme.abonner("rachat", moduleMedia);
+            System.out.println("Abonnement aux médias sélectionnés effectué.");
+        } else {
+            System.out.println("Aucun média sélectionné.");
+        }
+    }
+
+    /**
+     * Permet de s'abonner à des personnes.
+     */
+    private void sAbonnerPersonnes() {
+        System.out.println("\n=== LISTE DES PERSONNES DISPONIBLES ===");
+        List<PersonnePhysique> personnes = participationService.getEntites().values().stream()
+                .filter(entite -> entite instanceof PersonnePhysique)
+                .map(entite -> (PersonnePhysique) entite)
+                .toList();
+
+        if (personnes.isEmpty()) {
+            System.out.println("Aucune personne disponible.");
+            return;
+        }
+
+        for (int i = 0; i < personnes.size(); i++) {
+            System.out.println((i + 1) + ". " + personnes.get(i).getNom());
+        }
+
+        System.out.print("Entrez les numéros des personnes à surveiller (séparés par des virgules) : ");
+        String saisie = scanner.nextLine();
+        String[] indices = saisie.split(",");
+
+        List<PersonnePhysique> personnesSelectionnees = new ArrayList<>();
+        for (String index : indices) {
+            try {
+                int i = Integer.parseInt(index.trim()) - 1;
+                if (i >= 0 && i < personnes.size()) {
+                    personnesSelectionnees.add(personnes.get(i));
+                } else {
+                    System.out.println("Numéro invalide : " + (i + 1));
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Entrée invalide : " + index);
+            }
+        }
+
+        if (!personnesSelectionnees.isEmpty()) {
+            modulePersonne = new ModuleSuiviPersonne(personnesSelectionnees, vigie, participationService);
+            systeme.abonner("publication", modulePersonne);
+            System.out.println("Abonnement aux personnes sélectionnées effectué.");
+        } else {
+            System.out.println("Aucune personne sélectionnée.");
+        }
     }
 
     /**
@@ -126,227 +272,109 @@ public class ConsoleApp {
     }
 
     /**
-     * Simule une publication mentionnant une personne.
-     * Utilise une recherche stricte mais tolérante (casse, accents, espaces).
+     * Affiche les entités classées par nombre de médias possédés.
      */
-    private void simulerPublication() {
-        System.out.println("Nom complet de la personne mentionnée :");
-        Entite cible = rechercherEntiteParNomExact();
-        if (cible == null) return;
-
-        System.out.print("Contenu de la publication : ");
-        String contenu = scanner.nextLine();
-        Evenement e = new Evenement("publication", LocalDate.now(), cible, contenu);
-        systeme.diffuserEvenement(e);
-        System.out.println("Événement de publication simulé.");
-    }
-
-    /**
-     * Simule un événement de rachat avec sélection précise des entités concernées.
-     */
-    private void simulerRachat() {
-        System.out.println("Nom complet de l’acheteur :");
-        Entite acheteur = rechercherEntiteParNomExact();
-        if (acheteur == null) return;
-
-        System.out.println("Nom complet du vendeur :");
-        Entite vendeur = rechercherEntiteParNomExact();
-        if (vendeur == null) return;
-
-        System.out.println("Nom complet de la cible :");
-        Entite cible = rechercherEntiteParNomExact();
-        if (cible == null) return;
-
-        System.out.print("Pourcentage à transférer : ");
-        double pourcentage;
-        try {
-            pourcentage = Double.parseDouble(scanner.nextLine().replace(",", "."));
-            if (pourcentage <= 0 || pourcentage > 100) {
-                System.out.println("Erreur : Le pourcentage doit être compris entre 0 et 100.");
-                return;
-            }
-        } catch (NumberFormatException e) {
-            System.out.println("Erreur : Format de pourcentage invalide.");
+    private void afficherClassementMedias() {
+        Map<Entite, Integer> mediasPossedes = participationService.getNombreMediasPossedes();
+        if (mediasPossedes.isEmpty()) {
+            System.out.println("Aucune entité ne possède de médias.");
             return;
         }
 
-        String contenu = acheteur.getNom() + ", " + vendeur.getNom() + ", " + cible.getNom() + ", " + pourcentage;
-        Evenement e = new Evenement("rachat", LocalDate.now(), null, contenu);
-        systeme.diffuserEvenement(e);
-        System.out.println("Événement de rachat simulé.");
+        System.out.println("\n=== Classement des entités par nombre de médias possédés ===");
+        mediasPossedes.entrySet().stream()
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue())) // Tri décroissant
+                .forEach(entry -> System.out.println(entry.getKey().getNom() + " : " + entry.getValue() + " média(s)"));
     }
 
     /**
-     * Affiche les alertes reçues par la Vigie.
+     * Affiche les entités classées par nombre d'organisations possédées.
      */
-    private void afficherAlertes() {
-        vigie.afficherHistorique();
+    private void afficherClassementOrganisations() {
+        Map<Entite, Integer> organisationsPossedees = participationService.getNombreOrganisationsPossedees();
+        if (organisationsPossedees.isEmpty()) {
+            System.out.println("Aucune entité ne possède d'organisations.");
+            return;
+        }
+
+        System.out.println("\n=== Classement des entités par nombre d'organisations possédées ===");
+        organisationsPossedees.entrySet().stream()
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue())) // Tri décroissant
+                .forEach(entry -> System.out.println(entry.getKey().getNom() + " : " + entry.getValue() + " organisation(s)"));
     }
 
     /**
-     * Affiche les entités triées par nombre décroissant de médias possédés.
+     * Recherche une entité par nom complet (normalisé).
+     * Si une entité est trouvée, affiche ses propriétaires et propriétés.
      */
-    private void afficherClassementPossessionMedias() {
-        Map<Entite, Integer> compteur = new HashMap<>();
+    private Entite rechercherEntiteParNomExact() {
+        System.out.print("Entrez le nom de l'entité : ");
+        String saisie = normaliser(scanner.nextLine());
 
-        for (Participation p : participationService.getParticipations()) {
-            if (p.getCible() instanceof Media) {
-                Entite proprio = p.getProprietaire();
-                compteur.put(proprio, compteur.getOrDefault(proprio, 0) + 1);
+        for (Entite e : participationService.getEntites().values()) {
+            if (normaliser(e.getNom()).equals(saisie)) {
+                afficherDetailsEntite(e);
+                return e;
             }
         }
 
-        compteur.entrySet().stream()
-                .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
-                .forEach(entry ->
-                        System.out.println(entry.getKey().getNom() + " possède " + entry.getValue() + " média(s)")
-                );
+        System.out.println("Aucune entité ne correspond exactement.");
+        afficherEntitesDisponibles();
+        return null;
     }
 
     /**
-     * Affiche les entités triées par nombre décroissant d’organisations possédées.
+     * Affiche les détails d'une entité, y compris ses propriétaires et ses propriétés.
+     *
+     * @param entite L'entité dont les détails doivent être affichés.
      */
-    private void afficherClassementPossessionOrganisations() {
-        Map<Entite, Integer> compteur = new HashMap<>();
+    private void afficherDetailsEntite(Entite entite) {
+        System.out.println("\n=== Détails de l'entité ===");
+        System.out.println("Nom : " + entite.getNom());
 
-        for (Participation p : participationService.getParticipations()) {
-            if (p.getCible() instanceof PersonneMorale) {
-                Entite proprio = p.getProprietaire();
-                compteur.put(proprio, compteur.getOrDefault(proprio, 0) + 1);
-            }
-        }
-
-        compteur.entrySet().stream()
-                .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
-                .forEach(entry ->
-                        System.out.println(entry.getKey().getNom() + " possède " + entry.getValue() + " organisation(s)")
-                );
-    }
-
-    /**
-     * Affiche les historiques des modules spécialisés.
-     */
-    private void afficherHistoriquesModules() {
-        if (modulePersonne != null) {
-            System.out.println("\n--- Historique Module Personne ---");
-            modulePersonne.afficherHistorique();
+        // Affiche les propriétaires de l'entité
+        List<Participation> proprietaires = participationService.getProprietaires(entite);
+        if (proprietaires.isEmpty()) {
+            System.out.println("Propriétaires : Aucun propriétaire enregistré.");
         } else {
-            System.out.println("Aucun module de suivi pour les personnes n'a été initialisé.");
+            System.out.println("Propriétaires :");
+            for (Participation participation : proprietaires) {
+                System.out.println("  - " + participation.getProprietaire().getNom() +
+                        " (Parts : " + participation.getPourcentage() + "%)");
+            }
         }
 
-        if (moduleMedia != null) {
-            System.out.println("\n--- Historique Module Media ---");
-            moduleMedia.afficherHistorique();
+        // Affiche les propriétés de l'entité
+        List<Participation> proprietes = participationService.getProprietes(entite);
+        if (proprietes.isEmpty()) {
+            System.out.println("Propriétés : Aucune propriété enregistrée.");
         } else {
-            System.out.println("Aucun module de suivi pour les médias n'a été initialisé.");
+            System.out.println("Propriétés :");
+            for (Participation participation : proprietes) {
+                System.out.println("  - " + participation.getCible().getNom() +
+                        " (Parts : " + participation.getPourcentage() + "%)");
+            }
         }
     }
 
     /**
-     * Saisit un média et affiche toutes les entités qui le possèdent avec leurs pourcentages.
+     * Affiche les entités disponibles si une recherche échoue.
      */
-    private void saisirMediaEtAfficherProprietaires() {
-        System.out.println("Nom du média :");
-        Entite media = rechercherEntiteParNomExact();
-        if (!(media instanceof Media)) {
-            System.out.println("Erreur : L'entité saisie n'est pas un média.");
-            return;
-        }
-
-        System.out.println("\n--- Propriétaires du média : " + media.getNom() + " ---");
-        List<Participation> participations = participationService.getParticipations();
-        boolean proprietairesTrouves = false;
-
-        for (Participation p : participations) {
-            if (p.getCible().equals(media)) {
-                proprietairesTrouves = true;
-                String type = (p.getProprietaire() instanceof PersonnePhysique) ? "PersonnePhysique"
-                        : (p.getProprietaire() instanceof PersonneMorale) ? "PersonneMorale"
-                        : "Inconnu";
-                System.out.printf("- %-30s | Type : %-15s | Pourcentage : %.2f%%\n",
-                        p.getProprietaire().getNom(), type, p.getPourcentage());
-            }
-        }
-
-        if (!proprietairesTrouves) {
-            System.out.println("Aucun propriétaire trouvé pour ce média.");
-        }
+    private void afficherEntitesDisponibles() {
+        System.out.println("Entités disponibles :");
+        participationService.getEntites().values().stream()
+                .map(Entite::getNom)
+                .sorted()
+                .forEach(nom -> System.out.println("- " + nom));
     }
 
     /**
-     * Saisit une organisation et affiche ce qu'elle possède et les entités qui possèdent des parts.
+     * Supprime les accents, les espaces et met la chaîne en minuscules pour comparaison stricte.
      */
-    private void saisirOrganisationEtAfficherDetails() {
-        System.out.println("Nom de l'organisation :");
-        Entite organisation = rechercherEntiteParNomExact();
-        if (!(organisation instanceof PersonneMorale)) {
-            System.out.println("Erreur : L'entité saisie n'est pas une organisation.");
-            return;
-        }
-
-        System.out.println("\n--- Détails de l'organisation : " + organisation.getNom() + " ---");
-
-        // Afficher les entités qui possèdent des parts dans cette organisation
-        System.out.println("Propriétaires de l'organisation :");
-        List<Participation> participations = participationService.getParticipations();
-        boolean proprietairesTrouves = false;
-
-        for (Participation p : participations) {
-            if (p.getCible().equals(organisation)) {
-                proprietairesTrouves = true;
-                String type = (p.getProprietaire() instanceof PersonnePhysique) ? "PersonnePhysique"
-                        : (p.getProprietaire() instanceof PersonneMorale) ? "PersonneMorale"
-                        : "Inconnu";
-                System.out.printf("- %-30s | Type : %-15s | Pourcentage : %.2f%%\n",
-                        p.getProprietaire().getNom(), type, p.getPourcentage());
-            }
-        }
-
-        if (!proprietairesTrouves) {
-            System.out.println("Aucun propriétaire trouvé pour cette organisation.");
-        }
-
-        // Afficher ce que l'organisation possède
-        System.out.println("\nPossessions de l'organisation :");
-        boolean possessionsTrouvees = false;
-
-        for (Participation p : participations) {
-            if (p.getProprietaire().equals(organisation)) {
-                possessionsTrouvees = true;
-                System.out.printf("- %-30s | Pourcentage : %.2f%%\n", p.getCible().getNom(), p.getPourcentage());
-            }
-        }
-
-        if (!possessionsTrouvees) {
-            System.out.println("Cette organisation ne possède rien.");
-        }
-    }
-
-    /**
-     * Saisit une personne physique et affiche ce qu'elle possède.
-     */
-    private void saisirPersonneEtAfficherPossessions() {
-        System.out.println("Nom de la personne :");
-        Entite personne = rechercherEntiteParNomExact();
-        if (!(personne instanceof PersonnePhysique)) {
-            System.out.println("Erreur : L'entité saisie n'est pas une personne physique.");
-            return;
-        }
-
-        System.out.println("\n--- Possessions de la personne : " + personne.getNom() + " ---");
-        List<Participation> participations = participationService.getParticipations();
-        boolean possessionsTrouvees = false;
-
-        for (Participation p : participations) {
-            if (p.getProprietaire().equals(personne)) {
-                possessionsTrouvees = true;
-                System.out.printf("- %-30s | Pourcentage : %.2f%%\n", p.getCible().getNom(), p.getPourcentage());
-            }
-        }
-
-        if (!possessionsTrouvees) {
-            System.out.println("Cette personne ne possède rien.");
-        }
+    private String normaliser(String s) {
+        return Normalizer.normalize(s, Normalizer.Form.NFD)
+                .replaceAll("[\\p{InCombiningDiacriticalMarks}\\s]", "")
+                .toLowerCase();
     }
 
     /**
@@ -365,64 +393,152 @@ public class ConsoleApp {
     }
 
     /**
-     * Vérifie les abonnements aux événements dans le système.
+     * Initialise les modules spécialisés pour les entités surveillées.
      */
-    private void verifierAbonnements() {
-        Map<String, List<ModuleSpecialise>> abonnements = systeme.getAbonnements();
-        if (abonnements.isEmpty()) {
-            System.out.println("Aucun module abonné.");
+    private void initialiserModules() {
+        Entite personne = participationService.getEntiteParNom("vincent bolloré");
+        if (personne instanceof PersonnePhysique) {
+            modulePersonne = new ModuleSuiviPersonne(List.of((PersonnePhysique) personne), vigie, participationService);
+            systeme.abonner("publication", modulePersonne);
         } else {
-            System.out.println("Modules abonnés par type d'événement :");
-            abonnements.forEach((type, modules) -> {
-                System.out.println("- " + type + " :");
-                for (ModuleSpecialise module : modules) {
-                    System.out.println("  * " + module.getClass().getSimpleName());
-                }
-            });
+            System.err.println("Erreur : L'entité 'vincent bolloré' n'a pas été trouvée ou n'est pas une PersonnePhysique.");
+        }
+
+        Entite media = participationService.getEntiteParNom("le monde");
+        if (media instanceof Media) {
+            moduleMedia = new ModuleSuiviMedia(List.of((Media) media), vigie);
+            systeme.abonner("rachat", moduleMedia);
+        } else {
+            System.err.println("Erreur : L'entité 'le monde' n'a pas été trouvée ou n'est pas un Media.");
         }
     }
 
     /**
-     * Recherche une entité par nom complet (normalisé).
-     * Nécessite une correspondance exacte après suppression de la casse, des espaces et accents.
-     *
-     * @return l’entité trouvée ou null
+     * Simule une publication mentionnant plusieurs entités.
      */
-    private Entite rechercherEntiteParNomExact() {
-        System.out.print("→ ");
-        String saisie = normaliser(scanner.nextLine());
+    private void simulerPublication() {
+        System.out.println("\n=== SIMULATION D'UNE PUBLICATION ===");
 
-        for (Entite e : participationService.getEntites().values()) {
-            if (normaliser(e.getNom()).equals(saisie)) {
-                return e;
+        System.out.print("Nom du média source : ");
+        String nomMedia = scanner.nextLine();
+        Media media = (Media) participationService.getEntiteParNom(nomMedia);
+        if (media == null) {
+            System.out.println("Média introuvable.");
+            return;
+        }
+
+        System.out.print("Contenu de la publication : ");
+        String contenu = scanner.nextLine();
+
+        System.out.print("Type de publication (article, reportage, interview) : ");
+        String typePublication = scanner.nextLine();
+
+        System.out.print("Entrez les noms des entités mentionnées (séparés par des virgules) : ");
+        String saisieMentions = scanner.nextLine();
+        List<Entite> mentions = new ArrayList<>();
+        for (String nom : saisieMentions.split(",")) {
+            Entite entite = participationService.getEntiteParNom(nom.trim());
+            if (entite != null) {
+                mentions.add(entite);
+            } else {
+                System.out.println("Entité introuvable : " + nom.trim());
             }
         }
 
-        System.out.println("Aucune entité ne correspond exactement.");
-        afficherEntitesDisponibles();
-        return null;
+        Evenement publication = new Evenement(
+                LocalDate.now(),
+                media,
+                contenu,
+                typePublication,
+                mentions
+        );
+
+        systeme.diffuserEvenement(publication);
+        System.out.println(String.format("Publication simulée avec succès : %s de %s le %s : %s; mentions : %s",
+                typePublication, media.getNom(), LocalDate.now(), contenu, mentions.stream().map(Entite::getNom).toList()));
     }
 
     /**
-     * Affiche les entités disponibles si une recherche échoue.
+     * Simule un événement de rachat.
      */
-    private void afficherEntitesDisponibles() {
-        System.out.println("Entités disponibles :");
-        participationService.getEntites().values().stream()
-                .map(Entite::getNom)
-                .sorted()
-                .forEach(nom -> System.out.println("- " + nom));
+    private void simulerRachat() {
+        System.out.println("\n=== SIMULATION D'UN RACHAT ===");
+
+        System.out.print("Nom de l'acheteur : ");
+        String nomAcheteur = scanner.nextLine();
+        Entite acheteur = participationService.getEntiteParNom(nomAcheteur);
+        if (acheteur == null) {
+            System.out.println("Acheteur introuvable.");
+            return;
+        }
+
+        System.out.print("Nom du vendeur : ");
+        String nomVendeur = scanner.nextLine();
+        Entite vendeur = participationService.getEntiteParNom(nomVendeur);
+        if (vendeur == null) {
+            System.out.println("Vendeur introuvable.");
+            return;
+        }
+
+        System.out.print("Nom de la cible (média ou organisation) : ");
+        String nomCible = scanner.nextLine();
+        Entite cible = participationService.getEntiteParNom(nomCible);
+        if (cible == null) {
+            System.out.println("Cible introuvable.");
+            return;
+        }
+
+        System.out.print("Pourcentage des parts transférées : ");
+        double pourcentage;
+        try {
+            pourcentage = Double.parseDouble(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("Pourcentage invalide.");
+            return;
+        }
+
+        Evenement rachat = new Evenement(
+                LocalDate.now(),
+                acheteur,
+                vendeur,
+                cible,
+                "Rachat simulé",
+                pourcentage
+        );
+        systeme.traiterRachat(rachat); //traite le rachat
+        systeme.diffuserEvenement(rachat);
+        System.out.println("Rachat simulé avec succès.");
     }
 
     /**
-     * Supprime les accents, les espaces et met la chaîne en minuscules pour comparaison stricte.
-     *
-     * @param s chaîne à nettoyer
-     * @return chaîne normalisée
+     * Affiche l'historique des publications.
      */
-    private String normaliser(String s) {
-        return Normalizer.normalize(s, Normalizer.Form.NFD)
-                .replaceAll("[\\p{InCombiningDiacriticalMarks}\\s]", "")
-                .toLowerCase();
+    private void afficherHistoriquePublications() {
+        System.out.println("\n=== HISTORIQUE DES PUBLICATIONS ===");
+        List<Evenement> historique = systeme.getHistorique("publication");
+        if (historique.isEmpty()) {
+            System.out.println("Aucune publication enregistrée.");
+            return;
+        }
+
+        for (Evenement evenement : historique) {
+            System.out.println("- " + evenement.getDate() + " : " + evenement.getContenu());
+        }
     }
-}
+
+    /**
+     * Affiche les alertes reçues par la Vigie.
+     */
+    private void afficherAlertes() {
+        System.out.println("\n=== ALERTES REÇUES ===");
+        List<String> alertes = vigie.getHistoriqueAlertes();
+        if (alertes.isEmpty()) {
+            System.out.println("Aucune alerte reçue.");
+            return;
+        }
+
+        for (String alerte : alertes) {
+            System.out.println("- " + alerte);
+        }
+    }
+    }
