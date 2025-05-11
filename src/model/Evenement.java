@@ -12,7 +12,7 @@ import java.time.LocalDate;
 public class Evenement {
     private String type;
     private LocalDate date;
-    private Object cible;
+    private Object cible; // Peut être un Media ou une Entite
     private String contenu;
 
     /**
@@ -31,7 +31,7 @@ public class Evenement {
     }
 
     /**
-     * @return le type de l'événement
+     * @return le type de l'événement (ex: "rachat", "publication", etc.)
      */
     public String getType() {
         return type;
@@ -56,20 +56,5 @@ public class Evenement {
      */
     public String getContenu() {
         return contenu;
-    }
-
-    /**
-     * Définit la cible de l’événement.
-     *
-     * @param cible entité concernée
-     */
-    public void setCible(Entite cible) {
-        this.cible = cible;
-    }
-
-
-    @Override
-    public String toString() {
-        return "Evenement{type='" + type + "', date=" + date + ", cible=" + cible + ", contenu='" + contenu + "'}";
     }
 }

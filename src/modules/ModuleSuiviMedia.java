@@ -15,7 +15,7 @@ import java.util.List;
 public class ModuleSuiviMedia implements ModuleSpecialise {
     private final List<Media> mediasSurveilles;
     private final Vigie vigie;
-    private final List<Evenement> historique = new ArrayList<>();
+    private final List<String> historique = new ArrayList<>();
 
     /**
      * Construit un module pour surveiller une liste de médias.
@@ -36,7 +36,7 @@ public class ModuleSuiviMedia implements ModuleSpecialise {
      */
     @Override
     public void traiter(Evenement evenement) {
-        historique.add(evenement);
+        historique.add(evenement.getContenu());
 
         if (!evenement.getType().equalsIgnoreCase("rachat")) return;
 
@@ -51,12 +51,18 @@ public class ModuleSuiviMedia implements ModuleSpecialise {
     }
 
     /**
-     * Affiche l’historique des événements reçus par ce module.
+     * Retourne l'historique des événements traités.
+     *
+     * @return la liste des événements traités
+     */
+    public List<String> getHistorique() {
+        return historique;
+    }
+
+    /**
+     * Affiche l'historique des événements traités.
      */
     public void afficherHistorique() {
-        System.out.println("Historique du module de suivi de média :");
-        for (Evenement e : historique) {
-            System.out.println("- [" + e.getDate() + "] " + e.getContenu());
-        }
+        historique.forEach(System.out::println);
     }
 }

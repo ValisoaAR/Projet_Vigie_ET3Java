@@ -22,12 +22,21 @@ public class TestFonctionnel {
     public static void main(String[] args) {
         System.out.println("===== Test Fonctionnel =====");
 
+        // Initialisation des services
         ParticipationService ps = new ParticipationService();
         Vigie vigie = new Vigie();
         SystemeEvenementiel systeme = new SystemeEvenementiel(ps);
-        new DataImport().importerTout(ps);
+        DataImport dataImport = new DataImport();
+
+        // Importation des données
+        System.out.println("\n--- Importation des données ---");
+        dataImport.importerTout(ps);
+
+        // Vérification des erreurs d'importation
+        afficherErreursImportation(dataImport);
 
         // Configuration des modules de test
+        System.out.println("\n--- Configuration des modules ---");
         System.out.println("Nom exact (complet) de la personne à surveiller :");
         PersonnePhysique personne = (PersonnePhysique) rechercherEntiteParNomExact(ps, PersonnePhysique.class);
 
@@ -39,12 +48,17 @@ public class TestFonctionnel {
         systeme.abonner("publication", mp);
         systeme.abonner("rachat", mm);
 
+        // Vérification des abonnements
+        verifierAbonnements(systeme);
+
         // Simulation d’un événement de publication
+        System.out.println("\n--- Simulation d’un événement de publication ---");
         Evenement pub = new Evenement("publication", LocalDate.now(), personne,
                 media.getNom() + " publie un article sur " + personne.getNom());
         systeme.diffuserEvenement(pub);
 
         // Simulation d’un rachat
+        System.out.println("\n--- Simulation d’un événement de rachat ---");
         System.out.println("Nom exact de l’acheteur :");
         Entite acheteur = rechercherEntiteParNomExact(ps, Entite.class);
 
@@ -59,6 +73,7 @@ public class TestFonctionnel {
         systeme.diffuserEvenement(rachat);
 
         // Résultats
+        System.out.println("\n--- Résultats ---");
         System.out.println("\n--- Participations ---");
         ps.afficherParticipations();
 
@@ -72,6 +87,43 @@ public class TestFonctionnel {
         mm.afficherHistorique();
 
         System.out.println("\n===== Fin du test =====");
+    }
+
+    /**
+     * Affiche les erreurs rencontrées lors de l'importation des fichiers.
+     *
+     * @param dataImport instance de DataImport
+     */
+    private static void afficherErreursImportation(DataImport dataImport) {
+        List<String> erreurs = dataImport.getErreurs();
+        if (erreurs.isEmpty()) {
+            System.out.println("Aucune erreur d'importation détectée.");
+        } else {
+            System.out.println("Erreurs d'importation détectées :");
+            for (String erreur : erreurs) {
+                System.out.println("- " + erreur);
+            }
+        }
+    }
+
+    /**
+     * Vérifie les abonnements aux événements dans le système.
+     *
+     * @param systeme instance de SystemeEvenementiel
+     */
+    private static void verifierAbonnements(SystemeEvenementiel systeme) {
+        Map<String, List<ModuleSpecialise>> abonnements = systeme.getAbonnements();
+        if (abonnements.isEmpty()) {
+            System.out.println("Aucun module abonné.");
+        } else {
+            System.out.println("Modules abonnés par type d'événement :");
+            abonnements.forEach((type, modules) -> {
+                System.out.println("- " + type + " :");
+                for (ModuleSpecialise module : modules) {
+                    System.out.println("  * " + module.getClass().getSimpleName());
+                }
+            });
+        }
     }
 
     /**
@@ -93,7 +145,21 @@ public class TestFonctionnel {
         }
 
         System.out.println("Aucune entité ne correspond exactement à cette saisie.");
+        afficherEntitesDisponibles(ps);
         return null;
+    }
+
+    /**
+     * Affiche les entités disponibles.
+     *
+     * @param ps le service de participations
+     */
+    private static void afficherEntitesDisponibles(ParticipationService ps) {
+        System.out.println("Entités disponibles :");
+        ps.getEntites().values().stream()
+                .map(Entite::getNom)
+                .sorted()
+                .forEach(nom -> System.out.println("- " + nom));
     }
 
     /**

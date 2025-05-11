@@ -15,6 +15,16 @@ public class DataImport {
 
     private final Map<String, Entite> entitesParNom = new HashMap<>();
     private final Map<String, Media> mediasParNom = new HashMap<>();
+    private final List<String> erreurs = new ArrayList<>(); // Liste des erreurs d'importation
+
+    // Centralisation des chemins des fichiers
+    private static final String CHEMIN_PERSONNES = "data/personnes.tsv";
+    private static final String CHEMIN_ORGANISATIONS = "data/organisations.tsv";
+    private static final String CHEMIN_MEDIAS = "data/medias.tsv";
+    private static final String CHEMIN_PERSONNE_MEDIA = "data/personne-media.tsv";
+    private static final String CHEMIN_ORGANISATION_MEDIA = "data/organisation-media.tsv";
+    private static final String CHEMIN_PERSONNE_ORGANISATION = "data/personne-organisation.tsv";
+    private static final String CHEMIN_ORGANISATION_ORGANISATION = "data/organisation-organisation.tsv";
 
     /**
      * Charge toutes les entités et participations à partir des fichiers .tsv.
@@ -22,15 +32,28 @@ public class DataImport {
      * @param participationService service pour enregistrer les participations
      */
     public void importerTout(ParticipationService participationService) {
-        chargerPersonnes("data/personnes.tsv");
-        chargerOrganisations("data/organisations.tsv");
-        chargerMedias("data/medias.tsv");
-        chargerParticipation("data/personne-media.tsv", participationService);
-        chargerParticipation("data/organisation-media.tsv", participationService);
-        chargerParticipation("data/personne-organisation.tsv", participationService);
-        chargerParticipation("data/organisation-organisation.tsv", participationService);
+        try {
+            chargerPersonnes(CHEMIN_PERSONNES);
+            chargerOrganisations(CHEMIN_ORGANISATIONS);
+            chargerMedias(CHEMIN_MEDIAS);
+            chargerParticipation(CHEMIN_PERSONNE_MEDIA, participationService);
+            chargerParticipation(CHEMIN_ORGANISATION_MEDIA, participationService);
+            chargerParticipation(CHEMIN_PERSONNE_ORGANISATION, participationService);
+            chargerParticipation(CHEMIN_ORGANISATION_ORGANISATION, participationService);
 
-        participationService.setEntites(entitesParNom);
+            participationService.setEntites(entitesParNom);
+        } catch (Exception e) {
+            erreurs.add("Erreur générale lors de l'importation : " + e.getMessage());
+        }
+    }
+
+    /**
+     * Retourne la liste des erreurs rencontrées lors de l'importation.
+     *
+     * @return liste des erreurs
+     */
+    public List<String> getErreurs() {
+        return erreurs;
     }
 
     /**
@@ -53,7 +76,7 @@ public class DataImport {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Erreur lecture fichier personnes : " + chemin);
+            erreurs.add("Erreur lors de la lecture du fichier personnes : " + chemin + " - " + e.getMessage());
         }
     }
 
@@ -77,7 +100,7 @@ public class DataImport {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Erreur lecture fichier organisations : " + chemin);
+            erreurs.add("Erreur lors de la lecture du fichier organisations : " + chemin + " - " + e.getMessage());
         }
     }
 
@@ -104,14 +127,14 @@ public class DataImport {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Erreur lecture fichier médias : " + chemin);
+            erreurs.add("Erreur lors de la lecture du fichier médias : " + chemin + " - " + e.getMessage());
         }
     }
 
     /**
      * Charge les participations entre entités à partir d’un fichier TSV.
-     * Seules les lignes contenant un lien "égal à" sont traitées.
-     * Gère les erreurs de format et les entités manquantes.
+     * Seules les lignes contenant un lien "égal à" ou similaire sont traitées.
+     * Gère les erreurs de format, les entités manquantes et les pourcentages invalides.
      *
      * @param chemin chemin relatif du fichier TSV à lire
      * @param ps     service de gestion des participations
@@ -123,10 +146,11 @@ public class DataImport {
             while ((ligne = br.readLine()) != null) {
                 String[] parties = ligne.split("\t");
 
-                if (parties.length >= 3 && parties[2].toLowerCase().contains("égal")) {
-                    String source = parties[0].trim();
-                    String cible = parties[1].trim();
-                    String pourcentageStr = parties[2]
+                // Vérification du format attendu
+                if (parties.length >= 5 && parties[2].toLowerCase().contains("égal")) {
+                    String sourceNom = parties[1].trim();
+                    String cibleNom = parties[4].trim();
+                    String pourcentageStr = parties[3]
                             .replaceAll("[^\\d,.]", "")
                             .replace(",", ".")
                             .trim();
@@ -134,26 +158,39 @@ public class DataImport {
                     try {
                         double pourcentage = Double.parseDouble(pourcentageStr);
 
-                        Entite e1 = ps.getEntiteParNom(source.toLowerCase().trim());
-                        Entite e2 = ps.getEntiteParNom(cible.toLowerCase().trim());
-
-                        if (e1 != null && e2 != null) {
-                            ps.ajouterParticipation(e1, e2, pourcentage);
-                        } else {
-                            System.err.println("Entité inconnue : " + source + " ou " + cible + " (ligne ignorée)");
+                        // Vérification que le pourcentage est valide
+                        if (pourcentage < 0 || pourcentage > 100) {
+                            erreurs.add("Pourcentage invalide (" + pourcentage + ") pour la ligne : " + ligne);
+                            continue;
                         }
 
-                    } catch (NumberFormatException ex) {
-                        System.err.println("Erreur de format numérique : " + pourcentageStr + " (ligne ignorée)");
-                    }
+                        // Récupérer les entités source et cible
+                        Entite source = entitesParNom.get(sourceNom.toLowerCase());
+                        Entite cible = entitesParNom.get(cibleNom.toLowerCase());
 
+                        if (source == null) {
+                            erreurs.add("Source inconnue : " + sourceNom + " (ligne ignorée : " + ligne + ")");
+                            continue;
+                        }
+
+                        if (cible == null) {
+                            erreurs.add("Cible inconnue : " + cibleNom + " (ligne ignorée : " + ligne + ")");
+                            continue;
+                        }
+
+                        // Ajouter la participation via ParticipationService
+                        ps.ajouterParticipation(source, cible, pourcentage);
+
+                    } catch (NumberFormatException ex) {
+                        erreurs.add("Erreur de format numérique : " + pourcentageStr + " (ligne ignorée : " + ligne + ")");
+                    }
                 } else {
-                    System.err.println("Ligne non conforme ignorée : " + ligne);
+                    erreurs.add("Ligne non conforme ignorée : " + ligne);
                 }
             }
 
         } catch (IOException e) {
-            System.err.println("Erreur de lecture du fichier : " + chemin);
+            erreurs.add("Erreur de lecture du fichier : " + chemin + " - " + e.getMessage());
         }
     }
 }

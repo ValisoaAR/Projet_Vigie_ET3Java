@@ -4,6 +4,7 @@ import core.*;
 import model.*;
 import modules.ModuleSuiviMedia;
 import modules.ModuleSuiviPersonne;
+import core.SystemeEvenementiel;
 
 import java.text.Normalizer;
 import java.time.LocalDate;
@@ -27,21 +28,16 @@ public class ConsoleApp {
      * Démarre le menu interactif de l'application console.
      */
     public void demarrer() {
+        // Importation des données
         dataImport.importerTout(participationService);
 
-        Entite personne = participationService.getEntiteParNom("vincent bolloré");
-        Entite media = participationService.getEntiteParNom("le monde");
+        // Vérification des erreurs d'importation
+        afficherErreursImportation();
 
-        if (personne instanceof PersonnePhysique) {
-            modulePersonne = new ModuleSuiviPersonne(List.of((PersonnePhysique) personne), vigie);
-            systeme.abonner("publication", modulePersonne);
-        }
+        // Initialisation des modules spécialisés
+        initialiserModules();
 
-        if (media instanceof Media) {
-            moduleMedia = new ModuleSuiviMedia(List.of((Media) media), vigie);
-            systeme.abonner("rachat", moduleMedia);
-        }
-
+        // Menu interactif
         boolean continuer = true;
         while (continuer) {
             afficherMenu();
@@ -56,12 +52,34 @@ public class ConsoleApp {
                 case "7" -> afficherClassementPossessionOrganisations();
                 case "8" -> afficherHistoriquesModules();
                 case "9" -> testImportation();
+                case "10" -> verifierAbonnements();
                 case "0" -> continuer = false;
                 default -> System.out.println("Choix invalide.");
             }
         }
 
         System.out.println("Fin de l'application.");
+    }
+
+    /**
+     * Initialise les modules spécialisés pour les entités surveillées.
+     */
+    private void initialiserModules() {
+        Entite personne = participationService.getEntiteParNom("vincent bolloré");
+        if (personne instanceof PersonnePhysique) {
+            modulePersonne = new ModuleSuiviPersonne(List.of((PersonnePhysique) personne), vigie);
+            systeme.abonner("publication", modulePersonne);
+        } else {
+            System.err.println("Erreur : L'entité 'vincent bolloré' n'a pas été trouvée ou n'est pas une PersonnePhysique.");
+        }
+
+        Entite media = participationService.getEntiteParNom("le monde");
+        if (media instanceof Media) {
+            moduleMedia = new ModuleSuiviMedia(List.of((Media) media), vigie);
+            systeme.abonner("rachat", moduleMedia);
+        } else {
+            System.err.println("Erreur : L'entité 'le monde' n'a pas été trouvée ou n'est pas un Media.");
+        }
     }
 
     /**
@@ -79,6 +97,7 @@ public class ConsoleApp {
                 7. Afficher les entités par nombre d'organisations possédées
                 8. Afficher l’historique des modules spécialisés
                 9. Vérifier les entités importées (test)
+                10. Vérifier les abonnements aux événements
                 0. Quitter
                 """);
         System.out.print("Votre choix : ");
@@ -138,8 +157,12 @@ public class ConsoleApp {
         double pourcentage;
         try {
             pourcentage = Double.parseDouble(scanner.nextLine().replace(",", "."));
+            if (pourcentage <= 0 || pourcentage > 100) {
+                System.out.println("Erreur : Le pourcentage doit être compris entre 0 et 100.");
+                return;
+            }
         } catch (NumberFormatException e) {
-            System.out.println("Format invalide.");
+            System.out.println("Erreur : Format de pourcentage invalide.");
             return;
         }
 
@@ -200,8 +223,19 @@ public class ConsoleApp {
      * Affiche les historiques des modules spécialisés.
      */
     private void afficherHistoriquesModules() {
-        if (modulePersonne != null) modulePersonne.afficherHistorique();
-        if (moduleMedia != null) moduleMedia.afficherHistorique();
+        if (modulePersonne != null) {
+            System.out.println("\n--- Historique Module Personne ---");
+            modulePersonne.afficherHistorique();
+        } else {
+            System.out.println("Aucun module de suivi pour les personnes n'a été initialisé.");
+        }
+
+        if (moduleMedia != null) {
+            System.out.println("\n--- Historique Module Media ---");
+            moduleMedia.afficherHistorique();
+        } else {
+            System.out.println("Aucun module de suivi pour les médias n'a été initialisé.");
+        }
     }
 
     /**
@@ -227,6 +261,39 @@ public class ConsoleApp {
     }
 
     /**
+     * Affiche les erreurs rencontrées lors de l'importation des fichiers.
+     */
+    private void afficherErreursImportation() {
+        List<String> erreurs = dataImport.getErreurs();
+        if (erreurs.isEmpty()) {
+            System.out.println("Aucune erreur d'importation détectée.");
+        } else {
+            System.out.println("Erreurs d'importation détectées :");
+            for (String erreur : erreurs) {
+                System.out.println("- " + erreur);
+            }
+        }
+    }
+
+    /**
+     * Vérifie les abonnements aux événements dans le système.
+     */
+    private void verifierAbonnements() {
+        Map<String, List<ModuleSpecialise>> abonnements = systeme.getAbonnements();
+        if (abonnements.isEmpty()) {
+            System.out.println("Aucun module abonné.");
+        } else {
+            System.out.println("Modules abonnés par type d'événement :");
+            abonnements.forEach((type, modules) -> {
+                System.out.println("- " + type + " :");
+                for (ModuleSpecialise module : modules) {
+                    System.out.println("  * " + module.getClass().getSimpleName());
+                }
+            });
+        }
+    }
+
+    /**
      * Recherche une entité par nom complet (normalisé).
      * Nécessite une correspondance exacte après suppression de la casse, des espaces et accents.
      *
@@ -243,7 +310,19 @@ public class ConsoleApp {
         }
 
         System.out.println("Aucune entité ne correspond exactement.");
+        afficherEntitesDisponibles();
         return null;
+    }
+
+    /**
+     * Affiche les entités disponibles si une recherche échoue.
+     */
+    private void afficherEntitesDisponibles() {
+        System.out.println("Entités disponibles :");
+        participationService.getEntites().values().stream()
+                .map(Entite::getNom)
+                .sorted()
+                .forEach(nom -> System.out.println("- " + nom));
     }
 
     /**
