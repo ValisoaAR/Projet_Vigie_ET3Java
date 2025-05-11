@@ -19,7 +19,10 @@ L'application permet de simuler des événements dans le domaine des médias (te
 ## Execution de l'application
 
 Pour lancer l'application, exécuter le fichier ProjetVigie.jar avec la ligne de code suivante dans un terminal :
+
+```
 java -jar ProjetVigie.jar
+```
 
 ## Structure du projet
 
