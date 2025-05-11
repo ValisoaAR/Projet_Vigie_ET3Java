@@ -51,8 +51,10 @@ public class ConsoleApp {
                 case "6" -> afficherClassementPossessionMedias();
                 case "7" -> afficherClassementPossessionOrganisations();
                 case "8" -> afficherHistoriquesModules();
-                case "9" -> testImportation();
-                case "10" -> verifierAbonnements();
+                case "9" -> saisirMediaEtAfficherProprietaires();
+                case "10" -> saisirOrganisationEtAfficherDetails();
+                case "11" -> saisirPersonneEtAfficherPossessions();
+                case "12" -> verifierAbonnements();
                 case "0" -> continuer = false;
                 default -> System.out.println("Choix invalide.");
             }
@@ -96,8 +98,10 @@ public class ConsoleApp {
                 6. Afficher les entités par nombre de médias possédés
                 7. Afficher les entités par nombre d'organisations possédées
                 8. Afficher l’historique des modules spécialisés
-                9. Vérifier les entités importées (test)
-                10. Vérifier les abonnements aux événements
+                9. Saisir un média et afficher ses propriétaires
+                10. Saisir une organisation et afficher ses relations
+                11. Saisir une personne et afficher ses possessions
+                12. Vérifier les abonnements aux événements
                 0. Quitter
                 """);
         System.out.print("Votre choix : ");
@@ -239,24 +243,109 @@ public class ConsoleApp {
     }
 
     /**
-     * Affiche les entités importées avec leur type et le nombre de possessions.
+     * Saisit un média et affiche toutes les entités qui le possèdent avec leurs pourcentages.
      */
-    private void testImportation() {
-        Map<String, Entite> entites = participationService.getEntites();
+    private void saisirMediaEtAfficherProprietaires() {
+        System.out.println("Nom du média :");
+        Entite media = rechercherEntiteParNomExact();
+        if (!(media instanceof Media)) {
+            System.out.println("Erreur : L'entité saisie n'est pas un média.");
+            return;
+        }
+
+        System.out.println("\n--- Propriétaires du média : " + media.getNom() + " ---");
         List<Participation> participations = participationService.getParticipations();
+        boolean proprietairesTrouves = false;
 
-        for (String nom : entites.keySet()) {
-            Entite e = entites.get(nom);
-            String type = (e instanceof Media) ? "Media"
-                    : (e instanceof PersonnePhysique) ? "PersonnePhysique"
-                    : (e instanceof PersonneMorale) ? "PersonneMorale"
-                    : "Inconnu";
+        for (Participation p : participations) {
+            if (p.getCible().equals(media)) {
+                proprietairesTrouves = true;
+                String type = (p.getProprietaire() instanceof PersonnePhysique) ? "PersonnePhysique"
+                        : (p.getProprietaire() instanceof PersonneMorale) ? "PersonneMorale"
+                        : "Inconnu";
+                System.out.printf("- %-30s | Type : %-15s | Pourcentage : %.2f%%\n",
+                        p.getProprietaire().getNom(), type, p.getPourcentage());
+            }
+        }
 
-            long nbPossessions = participations.stream()
-                    .filter(p -> p.getProprietaire().equals(e))
-                    .count();
+        if (!proprietairesTrouves) {
+            System.out.println("Aucun propriétaire trouvé pour ce média.");
+        }
+    }
 
-            System.out.printf("- %-30s | Type : %-15s | Possède : %d\n", e.getNom(), type, nbPossessions);
+    /**
+     * Saisit une organisation et affiche ce qu'elle possède et les entités qui possèdent des parts.
+     */
+    private void saisirOrganisationEtAfficherDetails() {
+        System.out.println("Nom de l'organisation :");
+        Entite organisation = rechercherEntiteParNomExact();
+        if (!(organisation instanceof PersonneMorale)) {
+            System.out.println("Erreur : L'entité saisie n'est pas une organisation.");
+            return;
+        }
+
+        System.out.println("\n--- Détails de l'organisation : " + organisation.getNom() + " ---");
+
+        // Afficher les entités qui possèdent des parts dans cette organisation
+        System.out.println("Propriétaires de l'organisation :");
+        List<Participation> participations = participationService.getParticipations();
+        boolean proprietairesTrouves = false;
+
+        for (Participation p : participations) {
+            if (p.getCible().equals(organisation)) {
+                proprietairesTrouves = true;
+                String type = (p.getProprietaire() instanceof PersonnePhysique) ? "PersonnePhysique"
+                        : (p.getProprietaire() instanceof PersonneMorale) ? "PersonneMorale"
+                        : "Inconnu";
+                System.out.printf("- %-30s | Type : %-15s | Pourcentage : %.2f%%\n",
+                        p.getProprietaire().getNom(), type, p.getPourcentage());
+            }
+        }
+
+        if (!proprietairesTrouves) {
+            System.out.println("Aucun propriétaire trouvé pour cette organisation.");
+        }
+
+        // Afficher ce que l'organisation possède
+        System.out.println("\nPossessions de l'organisation :");
+        boolean possessionsTrouvees = false;
+
+        for (Participation p : participations) {
+            if (p.getProprietaire().equals(organisation)) {
+                possessionsTrouvees = true;
+                System.out.printf("- %-30s | Pourcentage : %.2f%%\n", p.getCible().getNom(), p.getPourcentage());
+            }
+        }
+
+        if (!possessionsTrouvees) {
+            System.out.println("Cette organisation ne possède rien.");
+        }
+    }
+
+    /**
+     * Saisit une personne physique et affiche ce qu'elle possède.
+     */
+    private void saisirPersonneEtAfficherPossessions() {
+        System.out.println("Nom de la personne :");
+        Entite personne = rechercherEntiteParNomExact();
+        if (!(personne instanceof PersonnePhysique)) {
+            System.out.println("Erreur : L'entité saisie n'est pas une personne physique.");
+            return;
+        }
+
+        System.out.println("\n--- Possessions de la personne : " + personne.getNom() + " ---");
+        List<Participation> participations = participationService.getParticipations();
+        boolean possessionsTrouvees = false;
+
+        for (Participation p : participations) {
+            if (p.getProprietaire().equals(personne)) {
+                possessionsTrouvees = true;
+                System.out.printf("- %-30s | Pourcentage : %.2f%%\n", p.getCible().getNom(), p.getPourcentage());
+            }
+        }
+
+        if (!possessionsTrouvees) {
+            System.out.println("Cette personne ne possède rien.");
         }
     }
 
