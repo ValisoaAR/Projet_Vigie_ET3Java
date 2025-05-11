@@ -454,8 +454,7 @@ public class ConsoleApp {
         );
 
         systeme.diffuserEvenement(publication);
-        System.out.println(String.format("Publication simulée avec succès : %s de %s le %s : %s; mentions : %s",
-                typePublication, media.getNom(), LocalDate.now(), contenu, mentions.stream().map(Entite::getNom).toList()));
+        System.out.println("Publication simulée avec succès : ");
     }
 
     /**

@@ -4,17 +4,22 @@ Ce projet a été développé dans le cadre d’un exercice académique visant �
 
 ## Objectif
 
-L'application permet de simuler des événements dans le domaine des médias (tels que des publications ou des rachats), et de déclencher des alertes via des modules spécialisés qui analysent ces événements en temps réel. Un module central, la Vigie, centralise et affiche les alertes détectées.
+L'application permet de simuler des événements dans le domaine des médias (tels que des publications ou des rachats), et de déclencher des alertes via des modules spécialisés abonnés à des médias ou personnes particulières qui analysent ces événements en temps réel. Un module central, la Vigie, centralise et affiche les alertes détectées.
 
 ## Fonctionnalités
 
-- Création d’entités : personnes physiques, personnes morales (organisations), et médias
+- Importation d'entités et des parts de possession depuis une base de données 
 - Système d’événements : publication, rachat de parts
 - Modules spécialisés configurables :
   - Suivi des publications mentionnant des personnes surveillées
   - Suivi des rachats concernant des médias surveillés
 - Transmission d’alertes à un module central (Vigie)
 - Interface utilisateur en ligne de commande
+
+## Execution de l'application
+
+Pour lancer l'application, exécuter le fichier ProjetVigie.jar avec la ligne de code suivante dans un terminal :
+java -jar ProjetVigie.jar
 
 ## Structure du projet
 
